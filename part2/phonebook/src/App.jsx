@@ -65,7 +65,7 @@ const App = () => {
           })
           .catch((error) => {
             setMessage({
-              content: `the person'${newPerson.name}' was already deleted from server`,
+              content: `${error}`,
               error: true,
             });
             setTimeout(() => {
@@ -75,15 +75,23 @@ const App = () => {
           });
       }
     } else {
-      personService.create(newPerson).then((returnedPerson) => {
-        setPersons(persons.concat(returnedPerson));
-        setMessage({ content: `${returnedPerson.name} added`, error: false });
-        setTimeout(() => {
-          setMessage({ content: null, error: false });
-        }, 5000);
-        setNewName("");
-        setNumber("");
-      });
+      personService
+        .create(newPerson)
+        .then((returnedPerson) => {
+          setPersons(persons.concat(returnedPerson));
+          setMessage({ content: `${returnedPerson.name} added`, error: false });
+          setTimeout(() => {
+            setMessage({ content: null, error: false });
+          }, 5000);
+          setNewName("");
+          setNumber("");
+        })
+        .catch((error) => {
+          setMessage({
+            content: `${error}`,
+            error: true,
+          });
+        });
     }
   };
 
