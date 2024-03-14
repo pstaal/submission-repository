@@ -3,19 +3,22 @@ import Blog from "./components/Blog";
 import blogService from "./services/blogs";
 import loginService from "./services/login";
 import Notification from "./components/Notification";
+import BlogForm from "./components/BlogForm";
+import Togglable from "./components/Togglable";
 
 const App = () => {
   const [blogs, setBlogs] = useState([]);
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const [title, setTitle] = useState("");
-  const [author, setAuthor] = useState("");
-  const [url, setUrl] = useState("");
   const [user, setUser] = useState(null);
   const [errorMessage, setErrorMessage] = useState(null);
 
-  useEffect(() => {
+  const renderBlogs = () => {
     blogService.getAll().then((blogs) => setBlogs(blogs));
+  };
+
+  useEffect(() => {
+    renderBlogs();
   }, [blogs]);
 
   useEffect(() => {
@@ -48,16 +51,28 @@ const App = () => {
     }
   };
 
-  const handleAddBlog = async () => {
+  const updateBlog = async (newBlog, id) => {
+    try {
+      const blog = await blogService.update(newBlog, id);
+      renderBlogs();
+    } catch (exception) {}
+  };
+
+  const removeBlog = async (id) => {
+    try {
+      await blogService.removeBlog(id);
+      renderBlogs();
+    } catch (exception) {}
+  };
+
+  const handleAddBlog = async (title, author, url) => {
     try {
       const blog = await blogService.create({
         title,
         author,
         url,
       });
-      setTitle("");
-      setAuthor("");
-      setUrl("");
+
       setBlogs(blogs.concat(blog));
     } catch (exception) {
       setErrorMessage("Missing required values");
@@ -71,6 +86,8 @@ const App = () => {
     setUser(null);
     window.localStorage.removeItem("loggedBlogappUser");
   };
+
+  const sortedBlogs = blogs.sort((a, b) => b.likes - a.likes);
 
   if (user === null) {
     return (
@@ -109,39 +126,16 @@ const App = () => {
       <p>
         {user.name} logged-in<button onClick={handleLogout}>logout</button>
       </p>
-      <h2>Create new</h2>
-      <form onSubmit={handleAddBlog}>
-        <div>
-          title
-          <input
-            type="text"
-            value={title}
-            name="Title"
-            onChange={({ target }) => setTitle(target.value)}
-          />
-        </div>
-        <div>
-          author
-          <input
-            type="text"
-            value={author}
-            name="Author"
-            onChange={({ target }) => setAuthor(target.value)}
-          />
-        </div>
-        <div>
-          url
-          <input
-            type="text"
-            value={url}
-            name="Url"
-            onChange={({ target }) => setUrl(target.value)}
-          />
-        </div>
-        <button type="submit">create</button>
-      </form>
-      {blogs.map((blog) => (
-        <Blog key={blog.id} blog={blog} />
+      <Togglable buttonLabel="create new blog">
+        <BlogForm handleAddBlog={handleAddBlog} />
+      </Togglable>
+      {sortedBlogs.map((blog) => (
+        <Blog
+          key={blog.id}
+          blog={blog}
+          updateBlog={updateBlog}
+          removeBlog={removeBlog}
+        />
       ))}
     </div>
   );
