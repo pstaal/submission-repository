@@ -40,7 +40,10 @@ const Blog = ({ blog, updateBlog, removeBlog }) => {
         {blog.title} {blog.author}{" "}
         <button onClick={toggleVisibility}>{visible ? "hide" : "view"}</button>
       </div>
-      <div style={{ display: visible ? "" : "none" }}>
+      <div
+        style={{ display: visible ? "" : "none" }}
+        className="testBlogVisible"
+      >
         <p>{blog.url}</p>
         <p>
           likes {blog.likes}
