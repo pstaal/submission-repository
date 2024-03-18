@@ -1,17 +1,19 @@
 import { useState, useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
-import Blog from "./components/Blog";
+import BlogView from "./components/BlogView";
+import SingleBlog from "./components/SingleBlog";
 import blogService from "./services/blogs";
 import loginService from "./services/login";
 import Notification from "./components/Notification";
-import BlogForm from "./components/BlogForm";
-import Togglable from "./components/Togglable";
 import {
   setNotification,
   resetNotification,
 } from "./reducers/notificationReducer";
 import { createBlog, likeBlog, deleteBlog } from "./reducers/blogReducer";
 import { setUser, removeUser } from "./reducers/userReducer";
+import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
+import Users from "./components/Users";
+import User from "./components/User";
 
 const App = () => {
   const [username, setUsername] = useState("");
@@ -22,6 +24,7 @@ const App = () => {
     [...state.blogs].sort((a, b) => b.likes - a.likes)
   );
   const user = useSelector((state) => state.user);
+  const users = useSelector((state) => state.users);
 
   useEffect(() => {
     const loggedUserJSON = window.localStorage.getItem("loggedBlogappUser");
@@ -121,22 +124,41 @@ const App = () => {
 
   return (
     <div>
-      <h2>blogs</h2>
-      <Notification message={message} />
-      <p>
-        {user.name} logged-in<button onClick={handleLogout}>logout</button>
-      </p>
-      <Togglable buttonLabel="create new blog">
-        <BlogForm handleAddBlog={handleAddBlog} />
-      </Togglable>
-      {blogs.map((blog) => (
-        <Blog
-          key={blog.id}
-          blog={blog}
-          updateBlog={updateBlog}
-          removeBlog={removeBlog}
-        />
-      ))}
+      <Router>
+        <h2>blogs</h2>
+        <Notification message={message} />
+        <p
+          style={{
+            width: "100%",
+            backgroundColor: "lightgrey",
+            height: "30px",
+          }}
+        >
+          <Link to="/">blogs</Link>
+          <Link to="/users">users</Link>
+          {user.name} logged-in<button onClick={handleLogout}>logout</button>
+        </p>
+
+        <Routes>
+          <Route path="/users/:id" element={<User users={users} />} />
+          <Route path="/users" element={<Users users={users} />} />
+          <Route
+            path="/blogs/:id"
+            element={<SingleBlog blogs={blogs} updateBlog={updateBlog} />}
+          />
+          <Route
+            path="/"
+            element={
+              <BlogView
+                blogs={blogs}
+                handleAddBlog={handleAddBlog}
+                updateBlog={updateBlog}
+                removeBlog={removeBlog}
+              />
+            }
+          />
+        </Routes>
+      </Router>
     </div>
   );
 };
